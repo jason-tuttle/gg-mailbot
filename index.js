@@ -16,7 +16,7 @@ var emails = require("./emails");
 var env = require('node-env-file');
 var fs = require('fs');
 
-var envFile = __dirname + '/sample.env'
+var envFile = __dirname + '/.env'
 if (fs.existsSync(envFile)) {
   console.log(`Loading variables from ${envFile}`);
   env(envFile);
@@ -25,6 +25,7 @@ if (fs.existsSync(envFile)) {
 var botOptions = {
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
+  clientSigningSecret: process.env.CLIENT_SIGNING_SECRET,
   scopes: ['bot'],
   debug: process.env.DEBUG || false
 };
@@ -91,13 +92,19 @@ controller.on('slash_command', function (bot, message) {
 
   console.log("received slack_command", message);
 
+  function initialResponse(results) {
+    if (results.length) {
+
+    }
+  }
+
   function botResponse(attachments) {
     // ensure we're working with an array
     if (!Array.isArray(attachments)) {
       attachments = [attachments];
     }
     bot.replyPublicDelayed(message, {
-      // text: "Here's what we know about that",
+      text: "Here's what I found...",
       attachments: attachments,
     }, function(err,resp) {
       console.log(err,resp);
@@ -108,11 +115,10 @@ controller.on('slash_command', function (bot, message) {
     case '/getthemail':
       // bot.replyAcknowledge();
       bot.replyPrivate(message, "Working on that...");
+      let [user, time] = message.text.split(/\s+/);
 
-      botResponse(emails.find(message.text));
-      // bot.replyPublicDelayed(message, {
-      //   text: JSON.stringify(emails.find(message.text))
-      // });
+      // botResponse(emails.find(message.text));
+      emails.replyDialog(bot, message, {user, time});
       break;
     case '/github':
       bot.replyPrivate(message, "Working on it");
@@ -130,4 +136,8 @@ controller.on('slash_command', function (bot, message) {
       slackResponse.replyBugDialog(bot, message, {title: message.text});
       break;
   }
+});
+
+controller.on('dialog_submission', function(bot, message) {
+  console.log("##### dialog submission:", message);
 });
