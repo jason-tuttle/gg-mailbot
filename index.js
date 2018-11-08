@@ -139,5 +139,7 @@ controller.on('slash_command', function (bot, message) {
 });
 
 controller.on('dialog_submission', function(bot, message) {
+  bot.dialogOk();
   console.log("##### dialog submission:", message);
+  bot.whisper(message, 'Hang on, I\'m not quite there yet.');
 });
