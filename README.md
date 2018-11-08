@@ -1,7 +1,7 @@
 # THE MAILMAN
 ## GG Slack Bot built with BotKit
 
-[BotKit Slack README](https://botkit.ai/docs/readme-slack.html)
+Service for providing GG Customer Success team member with the ability to retrieve emails from the development server in a self-serve way, freeing up DevOps time resources and providing CS with shorter turnaround time during OQ-PQ.
 
 ## Getting Started
 
@@ -14,8 +14,8 @@
 ## Prerequisites
 
 * Slack Account with Admin Access
-* https://github.com/howdyai/botkit
-* https://botkit.ai/docs/readme-slack.html
+* [BotKit on GitHub](https://github.com/howdyai/botkit)
+* [BotKit Slack README](https://botkit.ai/docs/readme-slack.html)
 * node and npm
 * ngrok (if you want to develop locally)
 * Heroku Account (for deployment)
