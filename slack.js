@@ -1,71 +1,7 @@
 var moment = require("moment");
-var outdoorsy = require("./outdoorsy");
 
 var slack = {
-
   // build up the response for a rental object
-  buildRentalResponse: function(rental) {
-    var attachment = {
-      title: "Rental: " + rental.name,
-      title_link: "https://portal.outdoorsy.co/rentals/" + rental.id,
-      image_url: outdoorsy.imageFormat(rental.primary_image_url, "listing"),
-      thumb_url: outdoorsy.imageFormat(rental.primary_image_url, "thumbnail"),
-      footer: "Indoorsy Bot v2",
-      color: '#3498DB',
-      fields: [],
-    };
-
-    attachment.fields.push({
-      title: 'Owner',
-      value: "#" + rental.owner.id + ": " + rental.owner.profile.first_name + " " + rental.owner.profile.last_name,
-      short: false,
-    });
-
-    attachment.fields.push({
-      title: 'Type',
-      value: rental.type,
-      short: true,
-    });
-
-    attachment.fields.push({
-      title: 'Insurance Status',
-      value: rental.insurance_state || "Not started",
-      short: true,
-    });
-
-    return attachment;
-  },
-
-  buildUserResponse: function(user) {
-    var attachment = {
-      title: user.profile.first_name + " " + user.profile.last_name,
-      title_link: "https://portal.outdoorsy.co/users/" + user.id,
-      color: '#2C3E50',
-      fields: [],
-      image_url: user.profile.avatar_url
-    };
-
-    if (user.profile.social) {
-      links = user.profile.social.map(function(entry) {
-        return `${entry.site} - ${entry.link}`;
-      });
-
-      attachment.fields.push({
-        title: 'Social Links',
-        value: links.join('\n'),
-        short: false,
-      });
-    }
-
-    attachment.fields.push({
-      title: 'Bio',
-      value: user.profile.bio.description,
-      short: false,
-    });
-
-    return attachment;
-  },
-
   buildGithubUserResponse: function(user) {
     console.log(user);
 

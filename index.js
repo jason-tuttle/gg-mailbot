@@ -3,7 +3,6 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 var Botkit = require('botkit');
-var redis = require('botkit-storage-redis');
 var http = require('http');
 var url = require('url');
 var URI = require("urijs");
@@ -70,17 +69,6 @@ controller.setupWebserver(process.env.PORT,function(err,webserver) {
   });
 });
 
-
-controller.on('bot_channel_join', function(bot, message) {
-  bot.reply(message, {
-    text: "IndyTechTalks is here!"
-  });
-});
-
-controller.on('channel_join', function(bot, message) {
-  bot.reply(message,'Welcome to the channel!');
-});
-
 controller.hears(['did you hear'], 'direct_message', function(bot, message) {
   bot.reply(message, 'I heard you!')
   bot.startConversation(message, function(err, convo) {
@@ -94,54 +82,6 @@ controller.hears(['^tell me a secret$'], ['direct_mention', 'ambient', 'mention'
     convo.say({ ephemeral: true, text: 'These violent delights have violent ends' })
   });
 });
-//
-// // listen for passive outdoorsy links and reply with relevant info
-// controller.hears(["user", "rental"], ['direct_message', 'direct_mention', 'ambient'], function(bot,message) {
-//   // Pipe response back to Slack
-//   function botResponse(attachments) {
-//     // ensure we're working with an array
-//     if (!Array.isArray(attachments)) {
-//       attachments = [attachments];
-//     }
-//     bot.replyInThread(message, {
-//       text: "It's dangerous to go alone, take this!\ncxxxxx][===============>",
-//       attachments: attachments,
-//     }, function(err,resp) {
-//       console.log(err,resp);
-//     });
-//   }
-//
-//   var items = outdoorsy.extractItems(message.text);
-//
-//   // you can continue to respond to a single message for up to 3 minutes, so we're just going to
-//   // iterate over all the possible expansions and return them
-//
-//   // iterate over rentals
-//   items.rentals.forEach(function(rentalId) {
-//     outdoorsy.pullRental(rentalId, function(rental) {
-//       if (rental.error) {
-//         bot.reply(message, {
-//           text: `Oops! That rental returned: ${rental.error}`
-//         })
-//       } else {
-//         botResponse(slackResponse.buildRentalResponse(rental));
-//       }
-//     });
-//   });
-//
-//   // iterate over users
-//   items.users.forEach(function(userId) {
-//     outdoorsy.pullUser(userId, function(user) {
-//       if (user.error) {
-//         bot.reply(message, {
-//           text: `Oops! That user returned: ${user.error}`
-//         })
-//       } else {
-//         botResponse(slackResponse.buildUserResponse(user));
-//       }
-//     });
-//   });
-// });
 
 // listen for slash commands and respond with relevant data
 controller.on('slash_command', function (bot, message) {
@@ -166,17 +106,13 @@ controller.on('slash_command', function (bot, message) {
 
   switch (message.command) {
     case '/getthemail':
-      bot.replyAcknowledge();
-      bot.replyPublicDelayed(message, {
-        text: JSON.stringify(emails.find(message.text))
-      });
-      break;
-    case '/user':
-      bot.replyPrivate(message, "Working on it");
-      var id = cleanMessage(message.text);
-      outdoorsy.pullUser(id, function(user) {
-        botResponse(slackResponse.buildUserResponse(user));
-      });
+      // bot.replyAcknowledge();
+      bot.replyPrivate(message, "Working on that...");
+
+      botResponse(emails.find(message.text));
+      // bot.replyPublicDelayed(message, {
+      //   text: JSON.stringify(emails.find(message.text))
+      // });
       break;
     case '/github':
       bot.replyPrivate(message, "Working on it");
@@ -195,61 +131,3 @@ controller.on('slash_command', function (bot, message) {
       break;
   }
 });
-
-// controller.on('message_action', function handler(bot, message) {
-//   var submission = message.raw_message;
-//   var callbackId = submission.callback_id;
-//   var description = submission.message.text;
-//   switch(callbackId) {
-//     case 'bug-report':
-//       slackResponse.replyBugDialog(bot, message, {description});
-//       break;
-//   }
-// });
-
-// controller.on('dialog_submission', function handler(bot, message) {
-//   var submission = message.submission;
-//   // call dialogOk or else Slack will think this is an error
-//   bot.dialogOk();
-//   // asana.createTask(process.env.ASANA_WORKBOARD, {
-//   requestBin.post({
-//     name: `[${submission.app}] [${submission.severity}] ${submission.title}`,
-//     notes: `${submission.description}\n\nSubmitted by ${message.raw_message.user.name} via Indoorsy Bot`
-//   }).then(function(response) {
-//     bot.reply(message, {text: `${response.data.name}: https://app.asana.com/0/${process.env.ASANA_WORKBOARD}/${response.data.id}`});
-//   }).catch(function() {
-//     bot.replyPrivate(message, {text: 'Unable to create your card!'});
-//   });
-// })
-
-// receive an interactive message, and reply with a message that will replace the original
-// controller.on('interactive_message_callback', function(bot, message) {
-//   // check message.actions and message.callback_id to see what action to take...
-//   if (message.callback_id && /^rental_\d+_flagged$/.test(message.callback_id) && message.actions.length === 1) {
-//     let id = parseInt(message.callback_id.split('_')[1], 10);
-//     let text = message.original_message.attachments[0].text;
-//     let action = message.actions[0];
-//
-//     if (action.value === 'approve') {
-//       let msg = `:white_check_mark: <@${message.user}> has approved this rental.`;
-//
-//       bot.replyInteractive(message, {
-//         'attachments': [{
-//           'text': `${text}\n\n${msg}`,
-//           'color': 'good'
-//         }]
-//       });
-//
-//     } else if (action.value === 'delete') {
-//
-//       let msg = `:skull_and_crossbones: <@${message.user}> has deleted this rental.`;
-//
-//       bot.replyInteractive(message, {
-//         'attachments': [{
-//           'text': `${text}\n\n${msg}`,
-//           'color': 'danger'
-//         }]
-//       });
-//     }
-//   }
-// });
