@@ -9,7 +9,7 @@ module.exports = {
   findAll: function(user, timespan) {
     const now = Date.now();
     const cutoff = now - (timespan * 1000 * 60);
-    console.log(`Now: ${now}, Cutoff: ${cutoff}`);
+    console.log(user, cutoff);
     let results = [];
 
     if (!user) {
@@ -20,6 +20,7 @@ module.exports = {
       var filteredWithData = filtered.map(file => this.buildFileInfo(file));
       results = filteredWithData.filter(file => Date.parse(file.created) >= cutoff);
     }
+
     return results;
   },
 
