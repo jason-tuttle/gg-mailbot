@@ -1,7 +1,23 @@
-var fs = require('fs');
-var moment = require('moment');
+const fs = require('fs');
+const moment = require('moment');
+const path = require('path');
+const HTML5ToPDF = require('html5-to-pdf');
 
 const baseFilePath = '/var/tmp/emails';
+
+const run = async (inputBody, outputFilename) => {
+  const html5toPDF = new HTML5ToPDF({
+    inputBody: inputBody,
+    outputPath: path.join(__dirname, 'tmp', outputFilename),
+    renderDelay: 50,
+  });
+
+  await html5toPDF.start();
+  await html5toPDF.build();
+  await html5toPDF.close();
+  console.log('Done generating PDF');
+  process.exit(0);
+};
 
 module.exports = {
   list: [],
@@ -24,21 +40,29 @@ module.exports = {
     return results;
   },
 
-  find: function(user, timespan) {
-    const now = Date.now();
-    const cutoff = now - (timespan * 1000 * 60);
-
+  findById: function(user, id) {
     if (!user) {
       return;
     } else {
       var filelist = fs.readdirSync(baseFilePath);
-      // var file = filelist.filter(item => item.startsWith(user) && item.endsWith('.json'));
+      var filtered = filelist.find(item => item.startsWith(user) && item.endsWith('.json'));
+      var filteredWithData = filtered.map(file => this.buildFileInfo(file));
+      var foundOne = filteredWithData.find(file => file.id === id);
 
-      var file = filelist.find(item => item.startsWith(user) && item.endsWith('.json'));
-      var data = this.buildFileInfo(file);
+      return Promise.resolve(foundOne);
+    }
+  },
 
-      // return filelist.find(item => item.startsWith(user) && item.endsWith('.json'));
-      return this.buildFileResponse(data);
+  getFileHTML: async function(email, id) {
+    const outputFilename = `${email}-${id}`;
+
+    try {
+      const file = this.findById(email, id);
+      await run(file.content, outputFilename);
+      return outputFilename;
+    } catch (error) {
+      console.warn(error);
+      return null;
     }
   },
 
@@ -73,7 +97,7 @@ module.exports = {
 
       bot.replyWithDialog(message, dialog.asObject());
     } else {
-      bot.replyPrivateDelayed(message, {text: "Shit, I couldn't find anything."});
+      bot.replyPrivateDelayed(message, {text: "S#!t, I couldn't find anything. Sorry!"});
     }
   },
 
@@ -83,9 +107,13 @@ module.exports = {
       title_link: 'Link:',
       color: '#31D57C',
       fields: [],
+      image_url: '',
     };
 
+    const pdfOutput = this.getFileHTML
+
     if (fileInfo.contents) {
+      attachment.image_url = path.join(__dirname, 'tmp', )
       attachment.fields.push({
         title: 'To:',
         value: fileInfo.contents.Destination.ToAddresses.toString(),
